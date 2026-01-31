@@ -1,6 +1,113 @@
 {
   "rules": [
     {
+      "id": "oncall_signals",
+      "group": "oncall",
+      "type": "on_call",
+      "title": "Possible on-call expectations",
+      "severity": "high",
+      "explanation": "Language suggests availability outside normal hours or incident response responsibilities. If on-call exists, the policy should be explicit (rotation, compensation, frequency).",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bon[-\\s]?call\\b",
+          "\\boncall\\b",
+          "\\bafter[-\\s]?hours\\b",
+          "\\bout[-\\s]?of[-\\s]?hours\\b",
+          "\\bweekend(s)?\\b.*\\b(on[-\\s]?call|support|coverage)\\b",
+          "\\b24\\s*\\/\\s*7\\b",
+          "\\b24x7\\b",
+          "\\bpager\\b",
+          "\\bpagerduty\\b",
+          "\\bincident(s)?\\b",
+          "\\bproduction\\s+incident(s)?\\b",
+          "\\bsev\\s*[0-3]\\b",
+          "\\b(sev|severity)\\s*(one|two|three|1|2|3)\\b",
+          "\\brotation\\b",
+          "\\bon[-\\s]?call\\s+rotation\\b",
+          "\\bsupport\\s+rotation\\b",
+          "\\bprimary\\s+on[-\\s]?call\\b",
+          "\\bsecondary\\s+on[-\\s]?call\\b",
+          "\\bescalation\\b",
+          "\\bescalation\\s+policy\\b",
+          "\\bsla\\b",
+          "\\bslo\\b",
+          "\\boperational\\s+support\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bno\\s+on[-\\s]?call\\b",
+          "\\bwithout\\s+on[-\\s]?call\\b",
+          "\\bnot\\s+on[-\\s]?call\\b",
+          "\\bno\\s+after[-\\s]?hours\\b",
+          "\\bno\\s+out[-\\s]?of[-\\s]?hours\\b",
+          "\\bno\\s+weekend\\s+(work|coverage|support)\\b",
+          "\\bno\\s+pager\\b",
+          "\\bdoes\\s+not\\s+include\\s+on[-\\s]?call\\b",
+          "\\b(on[-\\s]?call|after[-\\s]?hours|out[-\\s]?of[-\\s]?hours)\\s+(not\\s+required|not\\s+expected|not\\s+part\\s+of\\s+this\\s+role)\\b",
+          "\\boptional\\s+on[-\\s]?call\\b",
+          "\\bvoluntary\\s+on[-\\s]?call\\b",
+          "\\bno\\s+incident\\s+response\\b"
+        ],
+        "flags": "i"
+      },
+      "scoreDelta": { "onCallInDisguise": 28, "clarity": -6 },
+      "maxEvidence": 8,
+      "priority": 100
+    },
+    {
+      "id": "salary_present",
+      "group": "compensation",
+      "kind": "greenFlag",
+      "type": "salary_range_present",
+      "title": "Salary/compensation mentioned",
+      "explanation": "The post includes compensation-related wording alongside numbers, which is a strong clarity signal.",
+      "mode": "combo",
+      "match": {
+        "mustInclude": [
+          {
+            "mode": "regex",
+            "patterns": [
+              "\\b(salary|compensation|pay|range|base|ote|on[-\\s]?target\\s+earnings|total\\s+comp|tc|hourly|rate)\\b"
+            ],
+            "flags": "i"
+          },
+          {
+            "mode": "regex",
+            "patterns": [
+              "(\\$|€|£)\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b",
+              "\\b\\d{2,3}\\s?[kK]\\b",
+              "\\b\\d{4,6}\\b",
+              "\\b\\d{2,3}\\s?(?:to|-)\\s?\\d{2,3}\\s?[kK]\\b",
+              "\\b\\d{2,3}(?:[.,]\\d{3})\\s?(?:to|-)\\s?\\d{2,3}(?:[.,]\\d{3})\\b",
+              "\\b(USD|EUR|GBP)\\b\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b"
+            ],
+            "flags": "i"
+          }
+        ]
+      },
+      "exclude": {
+        "patterns": [
+          "\\bcompetitive\\s+(salary|compensation|pay)\\b",
+          "\\bmarket\\s+rate\\b",
+          "\\bdepends\\s+on\\s+experience\\b",
+          "\\bdoe\\b",
+          "\\bnegotiable\\b",
+          "\\bto\\s+be\\s+discussed\\b",
+          "\\b(tbd|t\\.b\\.d\\.)\\b",
+          "\\bnot\\s+disclosed\\b",
+          "\\bundisclosed\\b",
+          "\\bno\\s+salary\\s+info\\b"
+        ],
+        "flags": "i"
+      },
+      "scoreDelta": { "compensationClarity": 25, "clarity": 8 },
+      "maxEvidence": 5,
+      "priority": 90
+    },
+    {
       "id": "vague_cliches",
       "group": "vagueness",
       "type": "vague_language",
@@ -13,55 +120,43 @@
           "fast-paced",
           "rockstar",
           "ninja",
+          "wizard",
+          "guru",
+          "superstar",
           "wear many hats",
           "hit the ground running",
           "self-starter",
-          "dynamic environment"
+          "dynamic environment",
+          "move fast",
+          "move quickly",
+          "work hard play hard",
+          "go-getter",
+          "passionate about",
+          "think outside the box",
+          "results-driven",
+          "best-in-class",
+          "world-class",
+          "high-performing team",
+          "strong work ethic"
         ],
         "caseInsensitive": true,
         "wordBoundary": false
       },
-      "scoreDelta": { "vagueness": 18, "clarity": -10 },
-      "maxEvidence": 8
-    },
-    {
-      "id": "oncall_signals",
-      "group": "oncall",
-      "type": "on_call",
-      "title": "Possible on-call expectations",
-      "severity": "high",
-      "explanation": "Language suggests availability outside normal hours or incident response responsibilities. If on-call exists, the policy should be explicit (rotation, compensation, frequency).",
-      "mode": "regex",
-      "match": {
+      "exclude": {
+        "phrases": [
+          "fast-paced learning",
+          "dynamic programming"
+        ],
         "patterns": [
-          "\\bon[-\\s]?call\\b",
-          "\\bafter[-\\s]?hours\\b",
-          "\\b24\\s*\\/\\s*7\\b",
-          "\\bpager\\b",
-          "\\bincident\\b",
-          "\\brotation\\b"
+          "\\bfast[-\\s]?paced\\b.*\\b(sport|game|gaming|race|racing)\\b",
+          "\\b(ninja|wizard|guru)\\b\\s*(?:level\\s+)?\\d+",
+          "\\bstrong\\s+work\\s+ethic\\b\\s*\\(.*\\bexample\\b.*\\)"
         ],
         "flags": "i"
       },
-      "scoreDelta": { "onCallInDisguise": 28, "clarity": -6 },
-      "maxEvidence": 8
-    },
-    {
-      "id": "salary_present",
-      "group": "green",
-      "kind": "greenFlag",
-      "type": "salary_range_present",
-      "title": "Salary/compensation mentioned",
-      "explanation": "The post includes compensation-related wording alongside numbers, which is a strong clarity signal.",
-      "mode": "combo",
-      "match": {
-        "mustInclude": [
-          { "mode": "regex", "patterns": ["\\b(salary|compensation|pay|range|base)\\b"], "flags": "i" },
-          { "mode": "regex", "patterns": ["(\\$|€|£)\\s?\\d{2,3}\\s?[kK]\\b|\\b\\d{2,3}\\s?[kK]\\b|\\b\\d{4,6}\\b"], "flags": "i" }
-        ]
-      },
-      "scoreDelta": { "compensationClarity": 25, "clarity": 8 },
-      "maxEvidence": 5
+      "scoreDelta": { "vagueness": 18, "clarity": -10 },
+      "maxEvidence": 8,
+      "priority": 20
     }
   ]
 }

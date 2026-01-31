@@ -33,7 +33,12 @@ export type RuleCatalogRule = {
     severity?: InsightSeverity; // required for insights
     scoreDelta?: Partial<Scores>;
     maxEvidence?: number;
-
+    priority?: number; // higher first
+    exclude?: {
+        phrases?: string[];
+        patterns?: string[];
+        flags?: string;
+    };
     mode: "phrase" | "regex" | "combo";
     match: PhraseMatch | RegexMatch | ComboMatch;
 };
