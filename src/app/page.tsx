@@ -1,65 +1,96 @@
-import Image from "next/image";
+'use client'
+import {useMemo, useState} from "react";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Textarea} from "@/components/ui/textarea";
 
+
+type TabKey = "text" | "url" | "diff";
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    const [activeTab, setActiveTab] = useState("text");
+
+    const subTitle = useMemo(() =>
+        "Paste a job description, get deterministic scores and receipts, no paid AI, no vibes."
+    ,[])
+    return (
+    <div className={'space-y-6'}>
+        <header className={'space-y-2'}>
+            <h1 className={'text-3xl font-semibold tracking-tight'}>JD Roaster</h1>
+            <p className={'text-muted-foreground'}>{subTitle}</p>
+        </header>
+        <Tabs value={activeTab}
+              onValueChange={(value) => setActiveTab(value as TabKey)}
+              className="space-y-4"
+              >
+            <TabsList>
+                <TabsTrigger value={'text'}>Paste Text</TabsTrigger>
+                <TabsTrigger value={'url'}>URL</TabsTrigger>
+                <TabsTrigger value={'diff'}>Diff</TabsTrigger>
+            </TabsList>
+            <TabsContent value={'text'}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Analyze a URL</CardTitle>
+                        <CardDescription>
+                            We’ll fetch the page politely, extract readable text, and analyze
+                            it.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        <Input
+                            placeholder="https://company.com/careers/role"
+                            disabled
+                        />
+                        <p className="text-sm text-muted-foreground">
+                            URL ingestion is Step M4, for now it’s a pretty box.
+                        </p>
+                    </CardContent>
+                    <CardFooter>
+                        <Button disabled>Analyze URL</Button>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
+
+            <TabsContent value="diff">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Diff two job posts</CardTitle>
+                        <CardDescription>
+                            Compare versions, see what got worse, or suspiciously “more
+                            flexible.”
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="grid gap-3 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <div className="text-sm font-medium">Version A</div>
+                                <Textarea
+                                    placeholder="Paste job post A..."
+                                    className="min-h-[180px]"
+                                    disabled
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <div className="text-sm font-medium">Version B</div>
+                                <Textarea
+                                    placeholder="Paste job post B..."
+                                    className="min-h-[180px]"
+                                    disabled
+                                />
+                            </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                            Diff mode is Step M7, this is scaffolding.
+                        </p>
+                    </CardContent>
+                    <CardFooter>
+                        <Button disabled>Compare</Button>
+                    </CardFooter>
+                </Card>
+            </TabsContent>
+        </Tabs>
     </div>
   );
 }
