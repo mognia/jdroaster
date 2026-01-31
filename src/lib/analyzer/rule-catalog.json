@@ -1,0 +1,67 @@
+{
+  "rules": [
+    {
+      "id": "vague_cliches",
+      "group": "vagueness",
+      "type": "vague_language",
+      "title": "Vague or cliché language detected",
+      "severity": "info",
+      "explanation": "The post uses common clichés that reduce clarity. Not always bad, but they are not actionable requirements.",
+      "mode": "phrase",
+      "match": {
+        "phrases": [
+          "fast-paced",
+          "rockstar",
+          "ninja",
+          "wear many hats",
+          "hit the ground running",
+          "self-starter",
+          "dynamic environment"
+        ],
+        "caseInsensitive": true,
+        "wordBoundary": false
+      },
+      "scoreDelta": { "vagueness": 18, "clarity": -10 },
+      "maxEvidence": 8
+    },
+    {
+      "id": "oncall_signals",
+      "group": "oncall",
+      "type": "on_call",
+      "title": "Possible on-call expectations",
+      "severity": "high",
+      "explanation": "Language suggests availability outside normal hours or incident response responsibilities. If on-call exists, the policy should be explicit (rotation, compensation, frequency).",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bon[-\\s]?call\\b",
+          "\\bafter[-\\s]?hours\\b",
+          "\\b24\\s*\\/\\s*7\\b",
+          "\\bpager\\b",
+          "\\bincident\\b",
+          "\\brotation\\b"
+        ],
+        "flags": "i"
+      },
+      "scoreDelta": { "onCallInDisguise": 28, "clarity": -6 },
+      "maxEvidence": 8
+    },
+    {
+      "id": "salary_present",
+      "group": "green",
+      "kind": "greenFlag",
+      "type": "salary_range_present",
+      "title": "Salary/compensation mentioned",
+      "explanation": "The post includes compensation-related wording alongside numbers, which is a strong clarity signal.",
+      "mode": "combo",
+      "match": {
+        "mustInclude": [
+          { "mode": "regex", "patterns": ["\\b(salary|compensation|pay|range|base)\\b"], "flags": "i" },
+          { "mode": "regex", "patterns": ["(\\$|€|£)\\s?\\d{2,3}\\s?[kK]\\b|\\b\\d{2,3}\\s?[kK]\\b|\\b\\d{4,6}\\b"], "flags": "i" }
+        ]
+      },
+      "scoreDelta": { "compensationClarity": 25, "clarity": 8 },
+      "maxEvidence": 5
+    }
+  ]
+}
