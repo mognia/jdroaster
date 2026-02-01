@@ -1,4 +1,4 @@
-import type { Sentence } from "./types";
+import type { Sentence } from "../types/types";
 
 function makeId(i: number) {
     return `s_${i.toString(36)}`;

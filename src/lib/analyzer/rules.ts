@@ -1,5 +1,5 @@
-import type { GreenFlag, Insight, Scores, Sentence } from "./types";
-import type { RuleCatalog, RuleCatalogRule } from "./rule-catalog.types";
+import type { GreenFlag, Insight, Scores, Sentence } from "../types/types";
+import type { RuleCatalog, RuleCatalogRule } from "../types/rule-catalog.types";
 import catalogJson from "./rule-catalog.json";
 
 type Bucket = {

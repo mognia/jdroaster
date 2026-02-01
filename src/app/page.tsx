@@ -5,6 +5,7 @@ import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} f
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
+import {PasteTextForm} from "@/components/paste-text-form";
 
 
 type TabKey = "text" | "url" | "diff";
@@ -30,27 +31,7 @@ export default function Home() {
                 <TabsTrigger value={'diff'}>Diff</TabsTrigger>
             </TabsList>
             <TabsContent value={'text'}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Analyze a URL</CardTitle>
-                        <CardDescription>
-                            We’ll fetch the page politely, extract readable text, and analyze
-                            it.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        <Input
-                            placeholder="https://company.com/careers/role"
-                            disabled
-                        />
-                        <p className="text-sm text-muted-foreground">
-                            URL ingestion is Step M4, for now it’s a pretty box.
-                        </p>
-                    </CardContent>
-                    <CardFooter>
-                        <Button disabled>Analyze URL</Button>
-                    </CardFooter>
-                </Card>
+                <PasteTextForm />
             </TabsContent>
 
             <TabsContent value="diff">

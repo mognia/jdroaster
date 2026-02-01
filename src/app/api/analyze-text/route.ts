@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { analyzeText } from "@/lib/analyzer/analyze";
+import {REPORT_VERSION} from "@/lib/types/report.types";
 
 export const runtime = "nodejs";
 
@@ -29,5 +30,7 @@ export async function POST(req: Request) {
 
     const report = analyzeText(rawText);
 
-    return NextResponse.json({ ok: true, report });
+    return NextResponse.json({ ok: true,   ...report,
+        version: REPORT_VERSION,
+        createdAt: new Date().toISOString(), });
 }

@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JD X-Ray
 
-## Getting Started
+JD X-Ray is a deterministic job description analyzer that flags risks and signals in job ads using explicit, rule-based logic with sentence-level evidence (“receipts”).
 
-First, run the development server:
+This is not an AI app.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What problem it solves
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Job descriptions often hide important details behind vague language:
+- On-call expectations
+- Missing compensation info
+- Scope creep
+- Experience gatekeeping
+- Ambiguous responsibilities
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+JD X-Ray surfaces these signals clearly and shows exactly where they appear in the text.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Why deterministic rules (not AI)
 
-## Learn More
+- Results are explainable and repeatable
+- Every insight maps to a known rule
+- Every rule points to exact sentences
+- No hallucinations, no probabilistic guesses
 
-To learn more about Next.js, take a look at the following resources:
+If JD X-Ray flags something, you can see the sentence that triggered it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How sentence-level evidence works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. The job description is normalized
+2. It is split into sentence units with stable start/end indices
+3. Rules match phrases or patterns against those sentences
+4. Matched sentences are highlighted using index ranges, not fuzzy matching
 
-## Deploy on Vercel
+All highlighting is index-based and deterministic.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## What JD X-Ray does NOT do (by design)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- No web scraping
+- No URL ingestion
+- No user accounts
+- No persistence beyond sessionStorage
+- No sharing links
+- No diff mode
+- No AI-generated analysis
+
+This is a focused demo, not a production product.
+
+## Known limitations
+
+- Rules are only as good as the catalog
+- Ambiguous wording can still evade detection
+- Scoring is heuristic, not absolute truth
+- Results are session-local and not saved
+
+## Tech stack
+
+- Next.js (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+
+## Status
+
+M2 complete. Project frozen.

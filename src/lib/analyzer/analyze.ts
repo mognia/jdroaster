@@ -1,7 +1,7 @@
 import { normalizeText } from "./normalize";
 import { splitIntoSentences } from "./sentences";
 import { runRules } from "./rules";
-import type { Report, RoleBreakdown } from "./types";
+import type { Report, RoleBreakdown } from "../types/types";
 
 function makeReportId() {
     // deterministic-ish local ID, good enough until DB step
