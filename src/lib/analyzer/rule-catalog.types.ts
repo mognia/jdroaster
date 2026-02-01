@@ -39,6 +39,8 @@ export type RuleCatalogRule = {
         patterns?: string[];
         flags?: string;
     };
+    excludeScope?: "sentence" | "document" | "window";
+    excludeWindow?: number; // used only for window scope
     mode: "phrase" | "regex" | "combo";
     match: PhraseMatch | RegexMatch | ComboMatch;
 };

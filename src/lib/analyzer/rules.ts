@@ -52,18 +52,18 @@ function regexMatches(text: string, patterns: string[], flags?: string) {
     return { matched: false as const };
 }
 
-function excluded(rule: RuleCatalogRule, sentenceText: string) {
+function matchesExclude(rule: RuleCatalogRule, text: string) {
     if (!rule.exclude) return false;
 
     const ex = rule.exclude;
 
     if (ex.phrases && ex.phrases.length) {
-        const res = phraseMatches(sentenceText, ex.phrases, true, false);
+        const res = phraseMatches(text, ex.phrases, true, false);
         if (res.matched) return true;
     }
 
     if (ex.patterns && ex.patterns.length) {
-        const res = regexMatches(sentenceText, ex.patterns, ex.flags);
+        const res = regexMatches(text, ex.patterns, ex.flags);
         if (res.matched) return true;
     }
 
@@ -71,7 +71,6 @@ function excluded(rule: RuleCatalogRule, sentenceText: string) {
 }
 
 function ruleMatchesSentence(rule: RuleCatalogRule, sentenceText: string) {
-    if (excluded(rule, sentenceText)) return { matched: false as const };
 
     if (rule.mode === "phrase") {
         const m: any = rule.match;
@@ -130,14 +129,53 @@ function severityRank(s: Insight["severity"]) {
 export function runRules(sentences: Sentence[]) {
     const catalog = loadCatalog();
 
+    // Precompute which sentence indices match excludes per rule
+    const excludeIndexByRuleId = new Map<string, Set<number>>();
+    for (const rule of catalog.rules) {
+        const set = new Set<number>();
+        for (let i = 0; i < sentences.length; i++) {
+            if (matchesExclude(rule, sentences[i].text)) set.add(i);
+        }
+        excludeIndexByRuleId.set(rule.id, set);
+    }
+
     const sentenceIdSet = new Set(sentences.map((s) => s.id));
+    const sentenceIndexById = new Map<string, number>();
+    for (let i = 0; i < sentences.length; i++) sentenceIndexById.set(sentences[i].id, i);
 
     const buckets = new Map<string, Bucket>();
 
     for (const rule of catalog.rules) {
-        for (const s of sentences) {
+        const excludeIdx = excludeIndexByRuleId.get(rule.id) ?? new Set<number>();
+        const scope = rule.excludeScope ?? "sentence";
+        const win = Math.max(0, rule.excludeWindow ?? 2);
+
+        // document-scope exclude, if exclude exists anywhere, skip whole rule
+        if (scope === "document" && excludeIdx.size > 0) continue;
+
+        for (let i = 0; i < sentences.length; i++) {
+            const s = sentences[i];
+
+            // sentence-scope exclude, skip this sentence entirely if it contains exclude
+            if (scope === "sentence" && excludeIdx.has(i)) continue;
+
             const res = ruleMatchesSentence(rule, s.text);
             if (!res.matched) continue;
+
+            // window-scope exclude, block match if any exclude occurs nearby
+            if (scope === "window" && excludeIdx.size > 0) {
+                const from = Math.max(0, i - win);
+                const to = Math.min(sentences.length - 1, i + win);
+
+                let blocked = false;
+                for (let j = from; j <= to; j++) {
+                    if (excludeIdx.has(j)) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                if (blocked) continue;
+            }
 
             const b =
                 buckets.get(rule.id) ??
@@ -168,8 +206,6 @@ export function runRules(sentences: Sentence[]) {
         const ap = a.rule.priority ?? 0;
         const bp = b.rule.priority ?? 0;
         if (bp !== ap) return bp - ap;
-
-        // tie-breaker: id
         return a.rule.id.localeCompare(b.rule.id);
     });
 
@@ -180,9 +216,8 @@ export function runRules(sentences: Sentence[]) {
         const evidenceSentenceIds = Array.from(b.sentenceIds)
             .filter((id) => sentenceIdSet.has(id))
             .sort((x, y) => {
-                // keep evidence in sentence order
-                const xi = sentences.findIndex((s) => s.id === x);
-                const yi = sentences.findIndex((s) => s.id === y);
+                const xi = sentenceIndexById.get(x) ?? 0;
+                const yi = sentenceIndexById.get(y) ?? 0;
                 return xi - yi;
             })
             .slice(0, maxEvidence);
@@ -226,7 +261,7 @@ export function runRules(sentences: Sentence[]) {
         applyDeltas(scores, { compensationClarity: -15, clarity: -5 });
     }
 
-    // final stable ordering for insights (severity, priority already applied, then id)
+    // final stable ordering for insights
     insights.sort((a, b) => {
         const sr = severityRank(b.severity) - severityRank(a.severity);
         if (sr !== 0) return sr;
@@ -235,3 +270,4 @@ export function runRules(sentences: Sentence[]) {
 
     return { scores, insights, greenFlags };
 }
+

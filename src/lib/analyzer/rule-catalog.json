@@ -1,6 +1,101 @@
 {
   "rules": [
     {
+      "id": "salary_present",
+      "group": "compensation",
+      "kind": "greenFlag",
+      "type": "salary_range_present",
+      "title": "Salary/compensation mentioned",
+      "explanation": "The post includes compensation-related wording alongside numbers, which is a strong clarity signal.",
+      "mode": "combo",
+      "match": {
+        "mustInclude": [
+          {
+            "mode": "regex",
+            "patterns": [
+              "\\b(salary|compensation|pay|range|base|ote|on[-\\s]?target\\s+earnings|total\\s+comp|total\\s+compensation|tc|ctc|hourly|rate|day\\s?rate|contract\\s?rate)\\b"
+            ],
+            "flags": "i"
+          },
+          {
+            "mode": "regex",
+            "patterns": [
+              "(\\$|€|£)\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b",
+              "\\b\\d{2,3}\\s?[kK]\\b",
+              "\\b\\d{2,3}\\s?(?:to|-)\\s?\\d{2,3}\\s?[kK]\\b",
+              "\\b\\d{2,3}(?:[.,]\\d{3})\\s?(?:to|-)\\s?\\d{2,3}(?:[.,]\\d{3})\\b",
+              "\\b(USD|EUR|GBP)\\b\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b",
+              "\\b\\d{2,4}\\s?(?:to|-)\\s?\\d{2,4)\\s?(?:per\\s+hour|\\/\\s*hour|hourly)\\b",
+              "\\b\\d{2,4}\\s?(?:to|-)\\s?\\d{2,4}\\s?(?:per\\s+day|\\/\\s*day|daily)\\b"
+            ],
+            "flags": "i"
+          }
+        ]
+      },
+      "exclude": {
+        "patterns": [
+          "\\bcompetitive\\s+(salary|compensation|pay)\\b",
+          "\\bmarket\\s+rate\\b",
+          "\\bdepends\\s+on\\s+experience\\b",
+          "\\bdoe\\b",
+          "\\bnegotiable\\b",
+          "\\bto\\s+be\\s+discussed\\b",
+          "\\b(tbd|t\\.b\\.d\\.)\\b",
+          "\\bnot\\s+disclosed\\b",
+          "\\bundisclosed\\b",
+          "\\bno\\s+salary\\s+info\\b",
+          "\\bcommensurate\\s+with\\s+experience\\b",
+          "\\bup\\s+to\\b\\s*(\\$|€|£)?\\s*\\d+\\s?[kK]?\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "compensationClarity": 25, "clarity": 8 },
+      "maxEvidence": 5,
+      "priority": 110
+    },
+
+    {
+      "id": "explicit_oncall_policy",
+      "group": "oncall",
+      "kind": "greenFlag",
+      "type": "explicit_oncall_policy",
+      "title": "On-call policy is explicitly described",
+      "explanation": "The job post describes on-call expectations with concrete details (rotation/frequency/compensation/time boundaries), which reduces ambiguity.",
+      "mode": "combo",
+      "match": {
+        "mustInclude": [
+          {
+            "mode": "regex",
+            "patterns": ["\\bon[-\\s]?call\\b|\\boncall\\b|\\brotation\\b"],
+            "flags": "i"
+          },
+          {
+            "mode": "regex",
+            "patterns": [
+              "\\b(weekly|monthly|every\\s+\\d+\\s+weeks|frequency|cadence|rotation\\s+schedule)\\b",
+              "\\b(compensated|paid|extra\\s+pay|on[-\\s]?call\\s+allowance)\\b",
+              "\\b(primary|secondary)\\b",
+              "\\b(hours|time\\s+zone|coverage\\s+window)\\b"
+            ],
+            "flags": "i"
+          }
+        ]
+      },
+      "exclude": {
+        "patterns": [
+          "\\bno\\s+on[-\\s]?call\\b",
+          "\\bwithout\\s+on[-\\s]?call\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "document",
+      "scoreDelta": { "onCallInDisguise": -25, "clarity": 10 },
+      "maxEvidence": 5,
+      "priority": 105
+    },
+
+    {
       "id": "oncall_signals",
       "group": "oncall",
       "type": "on_call",
@@ -21,7 +116,6 @@
           "\\bpagerduty\\b",
           "\\bincident(s)?\\b",
           "\\bproduction\\s+incident(s)?\\b",
-          "\\bsev\\s*[0-3]\\b",
           "\\b(sev|severity)\\s*(one|two|three|1|2|3)\\b",
           "\\brotation\\b",
           "\\bon[-\\s]?call\\s+rotation\\b",
@@ -41,48 +135,66 @@
           "\\bno\\s+on[-\\s]?call\\b",
           "\\bwithout\\s+on[-\\s]?call\\b",
           "\\bnot\\s+on[-\\s]?call\\b",
-          "\\bno\\s+after[-\\s]?hours\\b",
-          "\\bno\\s+out[-\\s]?of[-\\s]?hours\\b",
-          "\\bno\\s+weekend\\s+(work|coverage|support)\\b",
-          "\\bno\\s+pager\\b",
           "\\bdoes\\s+not\\s+include\\s+on[-\\s]?call\\b",
           "\\b(on[-\\s]?call|after[-\\s]?hours|out[-\\s]?of[-\\s]?hours)\\s+(not\\s+required|not\\s+expected|not\\s+part\\s+of\\s+this\\s+role)\\b",
           "\\boptional\\s+on[-\\s]?call\\b",
-          "\\bvoluntary\\s+on[-\\s]?call\\b",
-          "\\bno\\s+incident\\s+response\\b"
+          "\\bvoluntary\\s+on[-\\s]?call\\b"
         ],
         "flags": "i"
       },
+      "excludeScope": "document",
       "scoreDelta": { "onCallInDisguise": 28, "clarity": -6 },
       "maxEvidence": 8,
       "priority": 100
     },
+
     {
-      "id": "salary_present",
-      "group": "compensation",
+      "id": "clear_boundaries",
+      "group": "clarity",
       "kind": "greenFlag",
-      "type": "salary_range_present",
-      "title": "Salary/compensation mentioned",
-      "explanation": "The post includes compensation-related wording alongside numbers, which is a strong clarity signal.",
+      "type": "clear_boundaries",
+      "title": "Clear boundaries and expectations",
+      "explanation": "The post includes explicit constraints (what you will not do, what is out of scope, or clearly defined responsibilities).",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bout\\s+of\\s+scope\\b",
+          "\\bnot\\s+responsible\\s+for\\b",
+          "\\bnot\\s+expected\\s+to\\b",
+          "\\bwe\\s+do\\s+not\\b",
+          "\\bthis\\s+role\\s+does\\s+not\\s+include\\b",
+          "\\bno\\s+travel\\b",
+          "\\bno\\s+on[-\\s]?call\\b",
+          "\\bno\\s+weekend\\b",
+          "\\bno\\s+overtime\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 12, "vagueness": -8 },
+      "maxEvidence": 6,
+      "priority": 80
+    },
+
+    {
+      "id": "scope_creep_fe_devops",
+      "group": "scope",
+      "type": "scope_creep",
+      "title": "Possible scope creep (frontend plus platform/DevOps)",
+      "severity": "warn",
+      "explanation": "The post mixes frontend responsibilities with platform/DevOps keywords. This can be fine, but it often signals role overload unless boundaries are explicit.",
       "mode": "combo",
       "match": {
         "mustInclude": [
           {
             "mode": "regex",
-            "patterns": [
-              "\\b(salary|compensation|pay|range|base|ote|on[-\\s]?target\\s+earnings|total\\s+comp|tc|hourly|rate)\\b"
-            ],
+            "patterns": ["\\b(frontend|front-end|ui|react|angular|vue|next\\.js|web)\\b"],
             "flags": "i"
           },
           {
             "mode": "regex",
             "patterns": [
-              "(\\$|€|£)\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b",
-              "\\b\\d{2,3}\\s?[kK]\\b",
-              "\\b\\d{4,6}\\b",
-              "\\b\\d{2,3}\\s?(?:to|-)\\s?\\d{2,3}\\s?[kK]\\b",
-              "\\b\\d{2,3}(?:[.,]\\d{3})\\s?(?:to|-)\\s?\\d{2,3}(?:[.,]\\d{3})\\b",
-              "\\b(USD|EUR|GBP)\\b\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b"
+              "\\b(devops|kubernetes|k8s|terraform|helm|docker|ci\\/cd|pipeline|observability|prometheus|grafana|aws|gcp|azure)\\b"
             ],
             "flags": "i"
           }
@@ -90,23 +202,50 @@
       },
       "exclude": {
         "patterns": [
-          "\\bcompetitive\\s+(salary|compensation|pay)\\b",
-          "\\bmarket\\s+rate\\b",
-          "\\bdepends\\s+on\\s+experience\\b",
-          "\\bdoe\\b",
-          "\\bnegotiable\\b",
-          "\\bto\\s+be\\s+discussed\\b",
-          "\\b(tbd|t\\.b\\.d\\.)\\b",
-          "\\bnot\\s+disclosed\\b",
-          "\\bundisclosed\\b",
-          "\\bno\\s+salary\\s+info\\b"
+          "\\bnot\\s+required\\b.*\\b(kubernetes|k8s|terraform|devops)\\b",
+          "\\bnice\\s+to\\s+have\\b.*\\b(kubernetes|k8s|terraform|devops)\\b"
         ],
         "flags": "i"
       },
-      "scoreDelta": { "compensationClarity": 25, "clarity": 8 },
-      "maxEvidence": 5,
-      "priority": 90
+      "excludeScope": "sentence",
+      "scoreDelta": { "scopeCreep": 18, "clarity": -6 },
+      "maxEvidence": 8,
+      "priority": 75
     },
+
+    {
+      "id": "role_overload_kitchen_sink",
+      "group": "scope",
+      "type": "scope_creep",
+      "title": "Role overload signals (\"everything\" list)",
+      "severity": "warn",
+      "explanation": "The post includes broad \"own end-to-end\" wording or long mixed responsibility lists, which can indicate unclear scope and overloaded expectations.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bwear\\s+many\\s+hats\\b",
+          "\\bend[-\\s]?to[-\\s]?end\\b",
+          "\\bfull\\s+stack\\b.*\\b(frontend|backend|devops)\\b",
+          "\\bown\\b.*\\b(entire|all|end[-\\s]?to[-\\s]?end)\\b",
+          "\\bbuild\\b.*\\bfrom\\s+scratch\\b.*\\bdeploy\\b",
+          "\\b(handle|manage)\\b.*\\b(frontend|backend|devops|support|qa)\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bwith\\s+support\\s+from\\b",
+          "\\bin\\s+collaboration\\s+with\\b",
+          "\\bpartner\\s+with\\b.*\\b(platform|devops|sre)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "scopeCreep": 15, "vagueness": 10, "clarity": -8 },
+      "maxEvidence": 8,
+      "priority": 70
+    },
+
     {
       "id": "vague_cliches",
       "group": "vagueness",
@@ -137,26 +276,133 @@
           "best-in-class",
           "world-class",
           "high-performing team",
-          "strong work ethic"
+          "strong work ethic",
+          "must thrive",
+          "can-do attitude",
+          "takes ownership"
         ],
         "caseInsensitive": true,
         "wordBoundary": false
       },
       "exclude": {
-        "phrases": [
-          "fast-paced learning",
-          "dynamic programming"
-        ],
+        "phrases": ["fast-paced learning", "dynamic programming"],
         "patterns": [
           "\\bfast[-\\s]?paced\\b.*\\b(sport|game|gaming|race|racing)\\b",
-          "\\b(ninja|wizard|guru)\\b\\s*(?:level\\s+)?\\d+",
-          "\\bstrong\\s+work\\s+ethic\\b\\s*\\(.*\\bexample\\b.*\\)"
+          "\\b(ninja|wizard|guru)\\b\\s*(?:level\\s+)?\\d+"
         ],
         "flags": "i"
       },
+      "excludeScope": "sentence",
       "scoreDelta": { "vagueness": 18, "clarity": -10 },
       "maxEvidence": 8,
-      "priority": 20
+      "priority": 30
+    },
+
+    {
+      "id": "vague_requirements",
+      "group": "vagueness",
+      "type": "vague_language",
+      "title": "Vague requirements (non-measurable)",
+      "severity": "info",
+      "explanation": "Some requirements are phrased without measurable criteria (e.g. \"strong\", \"excellent\"). This reduces clarity and makes expectations subjective.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(excellent|strong|great|solid|exceptional|outstanding)\\s+(communication|skills|attitude|mindset|problem\\s+solving|work\\s+ethic)\\b",
+          "\\bability\\s+to\\s+work\\s+independently\\b",
+          "\\bself[-\\s]?motivated\\b",
+          "\\bquick\\s+learner\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bstrong\\s+typed\\b",
+          "\\bstrong\\s+typing\\b",
+          "\\bstrong\\s+consistency\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "vagueness": 14, "clarity": -6 },
+      "maxEvidence": 8,
+      "priority": 25
+    },
+
+    {
+      "id": "years_experience_gate",
+      "group": "requirements",
+      "type": "other",
+      "title": "Experience gate detected",
+      "severity": "info",
+      "explanation": "The post includes a minimum years-of-experience requirement. This can be normal, but it is a common filtering mechanism.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b\\d{1,2}\\+?\\s*(years|yrs)\\s+of\\s+experience\\b",
+          "\\bminimum\\s+of\\s+\\d{1,2}\\s*(years|yrs)\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bpreferred\\b.*\\b\\d{1,2}\\+?\\s*(years|yrs)\\b",
+          "\\bnice\\s+to\\s+have\\b.*\\b\\d{1,2}\\+?\\s*(years|yrs)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -2, "vagueness": 2 },
+      "maxEvidence": 6,
+      "priority": 15
+    },
+
+    {
+      "id": "remote_policy_present",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "focused_scope",
+      "title": "Work location policy mentioned",
+      "explanation": "The post mentions remote/hybrid/on-site expectations, which reduces ambiguity about location requirements.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(remote|fully\\s+remote|hybrid|on[-\\s]?site|onsite|work\\s+from\\s+home|wfh)\\b",
+          "\\brelocation\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 8 },
+      "maxEvidence": 6,
+      "priority": 60
+    },
+
+    {
+      "id": "contractor_ambiguity",
+      "group": "clarity",
+      "type": "other",
+      "title": "Employment type ambiguity",
+      "severity": "info",
+      "explanation": "The post mentions contract/freelance/temporary signals without clear details, which can affect stability and expectations.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(contract|contractor|freelance|temporary|temp|fixed[-\\s]?term|part[-\\s]?time|hourly)\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bfull[-\\s]?time\\b",
+          "\\bpermanent\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -3, "vagueness": 4 },
+      "maxEvidence": 6,
+      "priority": 18
     }
   ]
 }
