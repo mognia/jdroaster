@@ -27,8 +27,8 @@ export default function Home() {
               >
             <TabsList>
                 <TabsTrigger value={'text'}>Paste Text</TabsTrigger>
-                <TabsTrigger value={'url'}>URL</TabsTrigger>
-                <TabsTrigger value={'diff'}>Diff</TabsTrigger>
+                <TabsTrigger disabled value={'url'}>URL</TabsTrigger>
+                <TabsTrigger disabled value={'diff'}>Diff</TabsTrigger>
             </TabsList>
             <TabsContent value={'text'}>
                 <PasteTextForm />

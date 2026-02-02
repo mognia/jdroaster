@@ -1,6 +1,6 @@
-# JD X-Ray
+# jdRoaster
 
-JD X-Ray is a deterministic job description analyzer that flags risks and signals in job ads using explicit, rule-based logic with sentence-level evidence (“receipts”).
+jdRoaster is a deterministic job description analyzer that flags risks and signals in job ads using explicit, rule-based logic with sentence-level evidence (“receipts”).
 
 This is not an AI app.
 
@@ -13,7 +13,7 @@ Job descriptions often hide important details behind vague language:
 - Experience gatekeeping
 - Ambiguous responsibilities
 
-JD X-Ray surfaces these signals clearly and shows exactly where they appear in the text.
+jdRoaster surfaces these signals clearly and shows exactly where they appear in the text.
 
 ## Why deterministic rules (not AI)
 
@@ -22,7 +22,7 @@ JD X-Ray surfaces these signals clearly and shows exactly where they appear in t
 - Every rule points to exact sentences
 - No hallucinations, no probabilistic guesses
 
-If JD X-Ray flags something, you can see the sentence that triggered it.
+If jdRoaster flags something, you can see the sentence that triggered it.
 
 ## How sentence-level evidence works
 
@@ -33,7 +33,7 @@ If JD X-Ray flags something, you can see the sentence that triggered it.
 
 All highlighting is index-based and deterministic.
 
-## What JD X-Ray does NOT do (by design)
+## What jdRoaster does NOT do (by design)
 
 - No web scraping
 - No URL ingestion

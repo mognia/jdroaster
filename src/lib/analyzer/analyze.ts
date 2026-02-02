@@ -32,6 +32,6 @@ export function analyzeText(rawText: string): Report {
         scores,
         insights,
         greenFlags,
-        roleBreakdown: roleBreakdownStub(),
+        // roleBreakdown: roleBreakdownStub(),
     };
 }

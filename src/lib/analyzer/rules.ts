@@ -258,7 +258,7 @@ export function runRules(sentences: Sentence[]) {
                 "No obvious salary range or compensation details were detected. This often increases negotiation ambiguity.",
             evidenceSentenceIds: [],
         });
-        applyDeltas(scores, { compensationClarity: -15, clarity: -5 });
+        scores.compensationClarity = Math.min(scores.compensationClarity, 30);
     }
 
     // final stable ordering for insights

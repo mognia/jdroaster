@@ -25,7 +25,7 @@
               "\\b\\d{2,3}\\s?(?:to|-)\\s?\\d{2,3}\\s?[kK]\\b",
               "\\b\\d{2,3}(?:[.,]\\d{3})\\s?(?:to|-)\\s?\\d{2,3}(?:[.,]\\d{3})\\b",
               "\\b(USD|EUR|GBP)\\b\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b",
-              "\\b\\d{2,4}\\s?(?:to|-)\\s?\\d{2,4)\\s?(?:per\\s+hour|\\/\\s*hour|hourly)\\b",
+              "\\b\\d{2,4}\\s?(?:to|-)\\s?\\d{2,4}\\s?(?:per\\s+hour|\\/\\s*hour|hourly)\\b",
               "\\b\\d{2,4}\\s?(?:to|-)\\s?\\d{2,4}\\s?(?:per\\s+day|\\/\\s*day|daily)\\b"
             ],
             "flags": "i"
@@ -34,6 +34,7 @@
       },
       "exclude": {
         "patterns": [
+          "\\bup\\s+to\\b",
           "\\bcompetitive\\s+(salary|compensation|pay)\\b",
           "\\bmarket\\s+rate\\b",
           "\\bdepends\\s+on\\s+experience\\b",
@@ -67,7 +68,7 @@
         "mustInclude": [
           {
             "mode": "regex",
-            "patterns": ["\\bon[-\\s]?call\\b|\\boncall\\b|\\brotation\\b"],
+            "patterns": ["\\bon[-\\s]?call\\b|\\boncall\\b|\\\b(on[-\\s]?call|support)\\s+rotation\\b"],
             "flags": "i"
           },
           {
@@ -89,7 +90,7 @@
         ],
         "flags": "i"
       },
-      "excludeScope": "document",
+      "excludeScope": "sentence",
       "scoreDelta": { "onCallInDisguise": -25, "clarity": 10 },
       "maxEvidence": 5,
       "priority": 105
@@ -172,7 +173,7 @@
       },
       "excludeScope": "sentence",
       "scoreDelta": { "clarity": 12, "vagueness": -8 },
-      "maxEvidence": 6,
+      "maxEvidence": 3,
       "priority": 80
     },
 
@@ -292,7 +293,8 @@
         ],
         "flags": "i"
       },
-      "excludeScope": "sentence",
+      "excludeScope": "window",
+      "excludeWindow": 1,
       "scoreDelta": { "vagueness": 18, "clarity": -10 },
       "maxEvidence": 8,
       "priority": 30
@@ -324,7 +326,7 @@
         "flags": "i"
       },
       "excludeScope": "sentence",
-      "scoreDelta": { "vagueness": 14, "clarity": -6 },
+      "scoreDelta": { "vagueness": 10, "clarity": -6 },
       "maxEvidence": 8,
       "priority": 25
     },
@@ -352,7 +354,7 @@
         "flags": "i"
       },
       "excludeScope": "sentence",
-      "scoreDelta": { "clarity": -2, "vagueness": 2 },
+      "scoreDelta": { "clarity": -4, "vagueness": 4 },
       "maxEvidence": 6,
       "priority": 15
     },
@@ -371,6 +373,13 @@
           "\\brelocation\\b"
         ],
         "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\btemporarily\\b",
+          "\\bafter\\s+relocation\\b",
+          "\\bnot\\s+remote\\b"
+        ]
       },
       "excludeScope": "sentence",
       "scoreDelta": { "clarity": 8 },
@@ -399,10 +408,630 @@
         ],
         "flags": "i"
       },
-      "excludeScope": "sentence",
+      "excludeScope": "document",
       "scoreDelta": { "clarity": -3, "vagueness": 4 },
       "maxEvidence": 6,
       "priority": 18
+    },
+    {
+      "id": "unpaid_overtime_normalized",
+      "group": "culture",
+      "type": "boundary_violation",
+      "title": "Overtime, but branded as passion",
+      "severity": "warn",
+      "explanation": "The post normalizes working beyond standard hours using motivational language instead of compensation or boundaries.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(extra\\s+mile|do\\s+what\\s+it\\s+takes|above\\s+and\\s+beyond)\\b",
+          "\\boutside\\s+(normal|business)\\s+hours\\b",
+          "\\blong\\s+hours\\b",
+          "\\bhigh\\s+commitment\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\b(compensated|paid\\s+overtime|time\\s+off\\s+in\\s+lieu)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -8, "vagueness": 10 },
+      "maxEvidence": 6,
+      "priority": 65
+    },
+    {
+      "id": "equity_instead_of_salary",
+      "group": "compensation",
+      "type": "compensation_risk",
+      "title": "Paid in equity, optimism, and vibes",
+      "severity": "high",
+      "explanation": "Compensation is framed around equity or future upside with little or no mention of actual pay.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bequity\\b",
+          "\\bmeaningful\\s+ownership\\b",
+          "\\bearly[-\\s]?stage\\b",
+          "\\bjoin\\s+us\\s+early\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\b(salary|compensation|pay|range|base|cash)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "document",
+      "scoreDelta": { "compensationClarity": -20, "clarity": -6 },
+      "maxEvidence": 5,
+      "priority": 100
+    },
+    {
+      "id": "growth_opportunity_tax",
+      "group": "compensation",
+      "type": "vague_language",
+      "title": "Growth opportunities instead of money",
+      "severity": "info",
+      "explanation": "Learning and growth are emphasized as benefits, often substituting for concrete compensation details.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bgrowth\\s+opportunity\\b",
+          "\\blearning\\s+experience\\b",
+          "\\bcareer[-\\s]?defining\\b",
+          "\\baccelerated\\s+growth\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\b(salary|pay|compensation|range)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "document",
+      "scoreDelta": { "vagueness": 8, "clarity": -4 },
+      "maxEvidence": 6,
+      "priority": 40
+    },
+    {
+      "id": "founder_dependency_risk",
+      "group": "scope",
+      "type": "org_risk",
+      "title": "You are the process now",
+      "severity": "warn",
+      "explanation": "The role relies heavily on founders or lacks established processes, signaling operational chaos disguised as ownership.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bwork\\s+directly\\s+with\\s+(the\\s+)?founder(s)?\\b",
+          "\\bno\\s+existing\\s+process(es)?\\b",
+          "\\bbuild\\s+everything\\s+from\\s+scratch\\b"
+        ],
+        "flags": "i"
+      },
+      "scoreDelta": { "scopeCreep": 12, "clarity": -5 },
+      "maxEvidence": 6,
+      "priority": 55
+    },
+    {
+      "id": "urgency_red_flag",
+      "group": "hiring_process",
+      "type": "pressure_signal",
+      "title": "We needed someone yesterday",
+      "severity": "info",
+      "explanation": "Urgent hiring language can indicate understaffing, churn, or ongoing fire drills.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\basap\\b",
+          "\\bimmediate\\s+join(er|ing)\\b",
+          "\\burgent\\s+hire\\b",
+          "\\bstart\\s+immediately\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -2, "vagueness": 4 },
+      "maxEvidence": 6,
+      "priority": 20
+    },
+    {
+      "id": "always_available_culture",
+      "group": "culture",
+      "type": "boundary_violation",
+      "title": "Your laptop is your personality now",
+      "severity": "high",
+      "explanation": "Availability expectations extend beyond reasonable work hours, often without explicit on-call policies.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\balways\\s+available\\b",
+          "\\bhigh\\s+responsiveness\\b",
+          "\\bfast\\s+response\\s+times\\b",
+          "\\b24\\s*\\/\\s*7\\s+availability\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bon[-\\s]?call\\b",
+          "\\brotation\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "onCallInDisguise": 20, "clarity": -8 },
+      "maxEvidence": 6,
+      "priority": 90
+    },
+    {
+      "id": "interview_process_hell",
+      "group": "hiring_process",
+      "type": "friction",
+      "title": "Interview process longer than probation",
+      "severity": "info",
+      "explanation": "The hiring process includes excessive stages or assignments, increasing candidate time cost with uncertain payoff.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(4|5|\\d{2,})\\s+stage(s)?\\b",
+          "\\bmultiple\\s+interview(s)?\\b",
+          "\\b\\d+\\s+stage(s)?\\b",
+          "\\btake[-\\s]?home\\s+(assignment|project)\\b",
+          "\\bpanel\\s+interview\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -3, "vagueness": 3 },
+      "maxEvidence": 6,
+      "priority": 22
+    },
+    {
+      "id": "mission_driven_without_mission",
+      "group": "culture",
+      "type": "vague_language",
+      "title": "Mission-driven, mission not found",
+      "severity": "info",
+      "explanation": "The post claims to be mission-driven without explaining the mission, impact, or what success actually looks like.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bmission[-\\s]?driven\\b",
+          "\\bpurpose[-\\s]?driven\\b",
+          "\\bchanging\\s+the\\s+world\\b",
+          "\\bmake\\s+an\\s+impact\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bmission\\s+is\\b",
+          "\\bour\\s+mission\\b",
+          "\\bimpact\\s+measured\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "vagueness": 12, "clarity": -6 },
+      "maxEvidence": 6,
+      "priority": 28
+    },
+    {
+      "id": "family_culture_red_flag",
+      "group": "culture",
+      "type": "boundary_violation",
+      "title": "We are a family (the unpaid kind)",
+      "severity": "warn",
+      "explanation": "Family-style language is used to describe work culture, often implying blurred boundaries and emotional labor.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bwe\\s+are\\s+like\\s+a\\s+family\\b",
+          "\\bfamily\\s+culture\\b",
+          "\\bclose[-\\s]?knit\\s+team\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bworking\\s+hours\\b",
+          "\\bclear\\s+boundaries\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -8, "vagueness": 8 },
+      "maxEvidence": 5,
+      "priority": 70
+    },
+    {
+      "id": "fast_growth_fire_drill",
+      "group": "culture",
+      "type": "pressure_signal",
+      "title": "Hypergrowth or just chaos",
+      "severity": "warn",
+      "explanation": "Rapid growth language suggests frequent priority shifts and ongoing fire drills unless explicitly mitigated.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bhyper[-\\s]?growth\\b",
+          "\\bscaling\\s+rapidly\\b",
+          "\\bgrowing\\s+fast\\b",
+          "\\bexplosive\\s+growth\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\broadmap\\b",
+          "\\bplanned\\s+growth\\b",
+          "\\bstructured\\s+scaling\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "window",
+      "excludeWindow": 2,
+      "scoreDelta": { "clarity": -6, "scopeCreep": 8 },
+      "maxEvidence": 6,
+      "priority": 60
+    },
+    {
+      "id": "ownership_without_authority",
+      "group": "scope",
+      "type": "scope_creep",
+      "title": "Full ownership, limited power",
+      "severity": "warn",
+      "explanation": "The role promises ownership and accountability without mentioning decision-making authority or support.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bown(ing)?\\b.*\\b(outcomes|delivery|success|failures?)\\b",
+          "\\baccountable\\s+for\\b",
+          "\\bfull\\s+ownership\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\bdecision[-\\s]?making\\b",
+          "\\bautonomy\\b",
+          "\\bauthority\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "window",
+      "excludeWindow": 2,
+      "scoreDelta": { "scopeCreep": 14, "clarity": -6 },
+      "maxEvidence": 6,
+      "priority": 68
+    },
+    {
+      "id": "benefits_as_compensation",
+      "group": "compensation",
+      "type": "compensation_risk",
+      "title": "Benefits listed, salary still missing",
+      "severity": "info",
+      "explanation": "The post lists perks and benefits extensively while avoiding concrete compensation details.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\bfree\\s+lunch\\b",
+          "\\bflexible\\s+hours\\b",
+          "\\bunlimited\\s+pto\\b",
+          "\\bteam\\s+retreats?\\b",
+          "\\bhealth\\s+insurance\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\b(salary|compensation|pay|range)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "document",
+      "scoreDelta": { "compensationClarity": -10, "clarity": -4 },
+      "maxEvidence": 6,
+      "priority": 50
+    },
+    {
+      "id": "role_level_identity_crisis",
+      "group": "requirements",
+      "type": "other",
+      "title": "Junior, senior, and lead at the same time",
+      "severity": "info",
+      "explanation": "The role mixes multiple seniority levels, suggesting unclear expectations or leveling confusion.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(junior|mid|senior|lead|principal)\\b.*\\b(junior|mid|senior|lead|principal)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": -4, "vagueness": 6 },
+      "maxEvidence": 5,
+      "priority": 26
+    },
+    {
+      "id": "bonus_ote_defined",
+      "group": "compensation",
+      "kind": "greenFlag",
+      "type": "bonus_ote_defined",
+      "title": "Bonus or OTE is defined with numbers",
+      "explanation": "Bonus/OTE is described with a concrete percentage or range, reducing compensation ambiguity.",
+      "mode": "combo",
+      "match": {
+        "mustInclude": [
+          { "mode": "regex", "patterns": ["\\b(bonus|ote|on[-\\s]?target\\s+earnings|variable)\\b"], "flags": "i" },
+          { "mode": "regex", "patterns": ["\\b\\d{1,2}%\\b|\\b\\$\\s?\\d{2,3}(?:[.,]\\d{3})?(?:\\s?[kK])?\\b|\\b\\d{2,3}\\s?[kK]\\b"], "flags": "i" }
+        ]
+      },
+      "exclude": { "patterns": ["\\buncapped\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "compensationClarity": 10, "clarity": 4 },
+      "maxEvidence": 4,
+      "priority": 95
+    },
+    {
+      "id": "equity_terms_defined",
+      "group": "compensation",
+      "kind": "greenFlag",
+      "type": "equity_terms_defined",
+      "title": "Equity terms are described",
+      "explanation": "Equity is described with vesting schedule, strike price, cliff, or similar specifics, which signals transparency.",
+      "mode": "combo",
+      "match": {
+        "mustInclude": [
+          {
+            "mode": "regex",
+            "patterns": ["\\b(equity|rsu(s)?|stock\\s+options?|option\\s+grant|esop)\\b"],
+            "flags": "i"
+          },
+          {
+            "mode": "regex",
+            "patterns": ["\\b(vesting|cliff|4\\s*year|strike\\s+price|grant\\s+size|equity\\s+range)\\b"],
+            "flags": "i"
+          }
+        ]
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "compensationClarity": 6, "clarity": 2 },
+      "maxEvidence": 4,
+      "priority": 85
+    },
+
+    {
+      "id": "pay_frequency_clarified",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "pay_frequency_clarified",
+      "title": "Pay cadence is clarified",
+      "explanation": "The post clarifies whether pay is annual, hourly, daily, or monthly, which helps set expectations but does not replace an actual salary range.",
+      "mode": "regex",
+      "match": {
+        "patterns": [
+          "\\b(per\\s+year|annual(ly)?|per\\s+hour|hourly|per\\s+day|daily|per\\s+month|monthly)\\b"
+        ],
+        "flags": "i"
+      },
+      "exclude": {
+        "patterns": [
+          "\\b(monthly\\s+payments?|withdrawal\\s+options?|same\\s+pay\\s+every\\s+month)\\b"
+        ],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 2 },
+      "maxEvidence": 4,
+      "priority": 60
+    },
+
+    {
+      "id": "no_oncall_explicit",
+      "group": "oncall",
+      "kind": "greenFlag",
+      "type": "no_oncall_explicit",
+      "title": "No on-call explicitly stated",
+      "explanation": "The post clearly states the role has no on-call expectations.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(no|without)\\s+on[-\\s]?call\\b|\\bon[-\\s]?call\\s+not\\s+(required|expected)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "onCallInDisguise": -18, "clarity": 6 },
+      "maxEvidence": 3,
+      "priority": 98
+    },
+    {
+      "id": "working_hours_defined",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "working_hours_defined",
+      "title": "Working hours are defined",
+      "explanation": "The post gives expected working hours or a defined daily schedule window.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(working\\s+hours|core\\s+hours|schedule)\\b.*\\b(\\d{1,2}(:\\d{2})?\\s*(am|pm)?|utc|gmt)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 8 },
+      "maxEvidence": 4,
+      "priority": 82
+    },
+    {
+      "id": "timezone_policy_stated",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "timezone_policy_stated",
+      "title": "Timezone expectations are stated",
+      "explanation": "The post specifies acceptable timezones or overlap requirements.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(time\\s*zone|timezone|overlap)\\b.*\\b(utc|gmt|eet|cet|pst|est|\\+\\d{1,2})\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 7 },
+      "maxEvidence": 4,
+      "priority": 76
+    },
+    {
+      "id": "overtime_compensated",
+      "group": "culture",
+      "kind": "greenFlag",
+      "type": "overtime_compensated",
+      "title": "Overtime is compensated or tracked",
+      "explanation": "Overtime is addressed with compensation or time-off-in-lieu policies.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(paid\\s+overtime|overtime\\s+paid|time\\s+off\\s+in\\s+lieu|toil|comp\\s*time)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 8, "vagueness": -6 },
+      "maxEvidence": 4,
+      "priority": 88
+    },
+    {
+      "id": "interview_stages_listed",
+      "group": "hiring_process",
+      "kind": "greenFlag",
+      "type": "interview_stages_listed",
+      "title": "Interview stages are clearly listed",
+      "explanation": "The post outlines the hiring steps, reducing process ambiguity and surprises.",
+      "mode": "regex",
+      "match": {
+        "patterns": ["\\b(interview\\s+process|hiring\\s+process)\\b.*\\b(screen|recruiter|technical|onsite|panel|final)\\b"],
+        "flags": "i"
+      },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 8 },
+      "maxEvidence": 4,
+      "priority": 74
+    },
+    {
+      "id": "hiring_timeline_stated",
+      "group": "hiring_process",
+      "kind": "greenFlag",
+      "type": "hiring_timeline_stated",
+      "title": "Hiring timeline is stated",
+      "explanation": "The post provides a target timeline for decisions or start date planning.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(we\\s+aim\\s+to|timeline|within)\\b.*\\b(\\d+\\s+days|\\d+\\s+weeks|by\\s+end\\s+of)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 6 },
+      "maxEvidence": 3,
+      "priority": 60
+    },
+    {
+      "id": "takehome_timeboxed_or_paid",
+      "group": "hiring_process",
+      "kind": "greenFlag",
+      "type": "takehome_timeboxed_or_paid",
+      "title": "Take-home is paid or time-boxed",
+      "explanation": "Take-home assignments are either compensated or explicitly limited in time scope.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(paid\\s+assignment|compensated\\s+assignment|time[-\\s]?boxed|should\\s+take\\s+\\d+\\s+hours)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 10 },
+      "maxEvidence": 3,
+      "priority": 83
+    },
+    {
+      "id": "success_metrics_defined",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "success_metrics_defined",
+      "title": "Success metrics or expectations are defined",
+      "explanation": "The post describes what success looks like (KPIs, outcomes, timelines).",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(success|you\\s+will)\\b.*\\b(within\\s+\\d+\\s+days|kpi|metric|outcome|deliverable)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 10, "vagueness": -8 },
+      "maxEvidence": 4,
+      "priority": 86
+    },
+    {
+      "id": "team_structure_described",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "team_structure_described",
+      "title": "Team structure and manager are described",
+      "explanation": "The post says who you report to and/or the team you’ll work with.",
+      "mode": "regex",
+      "match": { "patterns": ["\\breport\\s+to\\b|\\byou\\s+will\\s+work\\s+with\\b|\\bteam\\s+of\\s+\\d+\\b|\\bengineering\\s+manager\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 7 },
+      "maxEvidence": 4,
+      "priority": 72
+    },
+    {
+      "id": "nice_to_have_separated",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "nice_to_have_separated",
+      "title": "Nice-to-have is clearly separated from requirements",
+      "explanation": "The post distinguishes required vs optional qualifications.",
+      "mode": "regex",
+      "match": { "patterns": ["\\bnice\\s+to\\s+have\\b|\\bpreferred\\b|\\bbonus\\s+points\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 7, "vagueness": -4 },
+      "maxEvidence": 4,
+      "priority": 66
+    },
+    {
+      "id": "leveling_clear",
+      "group": "requirements",
+      "kind": "greenFlag",
+      "type": "leveling_clear",
+      "title": "Level expectations are clear",
+      "explanation": "The post clearly defines the level (junior/mid/senior) and what it means.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(senior|mid|junior|lead|principal)\\b.*\\b(scope|expectations|responsibilities|level)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 7 },
+      "maxEvidence": 3,
+      "priority": 62
+    },
+    {
+      "id": "learning_budget",
+      "group": "benefits",
+      "kind": "greenFlag",
+      "type": "learning_budget",
+      "title": "Learning budget is provided",
+      "explanation": "A defined learning budget or conference budget is a concrete benefit.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(learning|training|conference)\\s+budget\\b|\\b\\$\\s?\\d+\\s*(?:per\\s+year|annually)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 5 },
+      "maxEvidence": 3,
+      "priority": 52
+    },
+    {
+      "id": "remote_constraints_defined",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "remote_constraints_defined",
+      "title": "Remote constraints are clearly defined",
+      "explanation": "If remote has constraints (region, countries, travel), they’re stated explicitly.",
+      "mode": "regex",
+      "match": { "patterns": ["\\bremote\\b.*\\b(only|within|must\\s+be\\s+in|countries|region|europe|uk|us|time\\s*zone)\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 8 },
+      "maxEvidence": 4,
+      "priority": 73
+    },
+    {
+      "id": "visa_or_relocation_support",
+      "group": "clarity",
+      "kind": "greenFlag",
+      "type": "visa_or_relocation_support",
+      "title": "Visa or relocation support is stated",
+      "explanation": "The post explicitly mentions visa sponsorship and/or relocation support.",
+      "mode": "regex",
+      "match": { "patterns": ["\\b(visa\\s+sponsorship|sponsor\\s+visa|relocation\\s+support|relocation\\s+package)\\b"], "flags": "i" },
+      "exclude": { "patterns": ["\\bno\\s+visa\\b|\\bunable\\s+to\\s+sponsor\\b"], "flags": "i" },
+      "excludeScope": "sentence",
+      "scoreDelta": { "clarity": 10 },
+      "maxEvidence": 3,
+      "priority": 84
     }
+
   ]
 }

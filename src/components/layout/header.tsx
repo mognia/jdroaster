@@ -7,7 +7,7 @@ function Header() {
         <header className="border-b">
             <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4">
                 <Link href="/" className="font-semibold tracking-tight">
-                    JD X-Ray
+                    jdRoaster
                 </Link>
 
                 <nav className="flex items-center gap-2">

@@ -56,5 +56,5 @@ export type Report = {
     scores: Scores;
     insights: Insight[];
     greenFlags: GreenFlag[];
-    roleBreakdown: RoleBreakdown;
+    // roleBreakdown: RoleBreakdown;
 };

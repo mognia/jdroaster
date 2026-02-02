@@ -9,12 +9,12 @@ export function makeReportId(): string {
 }
 
 export function saveReport(reportId: string, report: AnalyzerReportV1): void {
-    sessionStorage.setItem(KEY_PREFIX + reportId, JSON.stringify(report));
+    sessionStorage.setItem(KEY_PREFIX, JSON.stringify(report));
     sessionStorage.setItem(KEY_LAST, reportId);
 }
 
 export function loadReport(reportId: string): AnalyzerReportV1 | null {
-    const raw = sessionStorage.getItem(KEY_PREFIX + reportId);
+    const raw = sessionStorage.getItem(KEY_PREFIX);
     if (!raw) return null;
     try {
         return JSON.parse(raw) as AnalyzerReportV1;

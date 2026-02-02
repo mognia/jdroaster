@@ -4,7 +4,7 @@ import * as React from "react";
 import { evidenceDomId } from "@/lib/report-utils";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {AnalyzerReportV1, Finding} from "@/lib/types/report.types";
+import type { AnalyzerReportV1, Finding } from "@/lib/types/report.types";
 
 type SentenceKind = "insight" | "green" | "none";
 
@@ -22,12 +22,6 @@ function buildSentenceKindMap(report: AnalyzerReportV1): Map<string, SentenceKin
     return kind;
 }
 
-function firstFindingForSentence(findings: Finding[], sentenceId: string): Finding | null {
-    for (const f of findings) {
-        if (f.evidenceSentenceIds.includes(sentenceId)) return f;
-    }
-    return null;
-}
 
 function scrollToId(id: string) {
     const el = document.getElementById(id);
@@ -39,13 +33,18 @@ function scrollToId(id: string) {
 export function ReceiptsText({
                                  report,
                                  allFindingsSorted,
+                                 activeSentenceId,
+                                 onActiveSentenceChange,
+                                 onFindingNavigate,
                              }: {
     report: AnalyzerReportV1;
-    allFindingsSorted: Finding[]; // already sorted by priority desc
+    allFindingsSorted: Finding[];
+    activeSentenceId: string | null;
+    onActiveSentenceChange: (id: string | null) => void;
+    onFindingNavigate: (findingDomId: string) => void;
 }) {
     const kindMap = React.useMemo(() => buildSentenceKindMap(report), [report]);
 
-    // Build pieces from normalizedText + sentence index ranges.
     const pieces = React.useMemo(() => {
         const text = report.normalizedText;
         const out: Array<
@@ -59,69 +58,90 @@ export function ReceiptsText({
             const start = s.start;
             const end = s.end;
 
-            // gap (if any)
-            if (start > cursor) {
-                out.push({ t: "text", value: text.slice(cursor, start) });
-            }
+            if (start > cursor) out.push({ t: "text", value: text.slice(cursor, start) });
 
             const value = text.slice(start, end);
             const kind = kindMap.get(s.id) ?? "none";
-
             out.push({ t: "sentence", id: s.id, value, kind });
 
             cursor = end;
         }
 
-        // tail (if any)
-        if (cursor < text.length) {
-            out.push({ t: "text", value: text.slice(cursor) });
-        }
+        if (cursor < text.length) out.push({ t: "text", value: text.slice(cursor) });
 
         return out;
     }, [report.normalizedText, report.sentences, kindMap]);
 
+    function findingForSentenceIn(list: Finding[], sentenceId: string): Finding | null {
+        for (const f of list) {
+            if (f.evidenceSentenceIds.includes(sentenceId)) return f;
+        }
+        return null;
+    }
+
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Original job description</CardTitle>
+        <Card className="overflow-hidden border-muted/60 shadow-sm">
+            <CardHeader >
+                <div className='border-b border-dashed pb-4'>
+
+                    <CardTitle>Original job description</CardTitle>
+                </div>
             </CardHeader>
 
             <CardContent>
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {pieces.map((p, idx) => {
-                        if (p.t === "text") return <React.Fragment key={`t-${idx}`}>{p.value}</React.Fragment>;
+                <div className="rounded-xl border-dashed ">
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                        {pieces.map((p, idx) => {
+                            if (p.t === "text") return <React.Fragment key={`t-${idx}`}>{p.value}</React.Fragment>;
 
-                        const isClickable = p.kind !== "none";
-                        const base =
-                            "rounded-sm px-0.5 outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
-                        const cls =
-                            p.kind === "insight"
-                                ? `${base} bg-destructive/15`
-                                : p.kind === "green"
-                                    ? `${base} bg-emerald-500/15`
-                                    : "";
+                            const isClickable = p.kind !== "none";
+                            const isActive = activeSentenceId === p.id;
 
-                        return (
-                            <span
-                                key={`s-${p.id}-${idx}`}
-                                id={evidenceDomId(p.id)} // stable anchor for “Go to evidence”
-                                tabIndex={-1}
-                                className={cls}
-                                role={isClickable ? "button" : undefined}
-                                onClick={() => {
-                                    if (!isClickable) return;
-                                    const target =
-                                        firstFindingForSentence(allFindingsSorted, p.id) ??
-                                        firstFindingForSentence(report.insights, p.id) ??
-                                        firstFindingForSentence(report.greenFlags, p.id);
-                                    if (!target) return;
-                                    scrollToId(`f-${target.ruleId}`);
-                                }}
-                            >
-                {p.value}
-              </span>
-                        );
-                    })}
+                            const base =
+                                "scroll-mt-24 rounded-sm px-0.5 outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
+                            const marker =
+                                p.kind === "insight"
+                                    ? "bg-gradient-to-r from-rose-500/30 to-rose-500/10 border-b border-rose-500/50"
+                                    : p.kind === "green"
+                                        ? "bg-gradient-to-r from-emerald-500/30 to-emerald-500/10 border-b border-emerald-500/50"
+                                        : "";
+                            const active = isActive ? "ring-2 ring-sky-500/80 ring-offset-2 bg-sky-500/10" : "";
+                            const cls = [base, marker, active].filter(Boolean).join(" ");
+
+                            return (
+                                <span
+                                    key={`s-${p.id}-${idx}`}
+                                    id={evidenceDomId(p.id)}
+                                    tabIndex={-1}
+                                    className={cls}
+                                    role={isClickable ? "button" : undefined}
+                                    onClick={() => {
+                                        if (!isClickable) return;
+
+                                        onActiveSentenceChange(p.id);
+
+                                        // Decide which section to scroll to
+                                        const insightTarget = findingForSentenceIn(report.insights, p.id);
+                                        const greenTarget = findingForSentenceIn(report.greenFlags, p.id);
+
+                                        const target = insightTarget ?? greenTarget;
+                                        if (!target) return;
+
+                                        const scopeKey = insightTarget ? "insights" : "green";
+                                        const findingDomId = `f-${scopeKey}-${target.ruleId}`;
+
+                                        onFindingNavigate(findingDomId);
+
+                                        // scroll immediately, retry next frame if needed
+                                        scrollToId(findingDomId);
+                                        requestAnimationFrame(() => scrollToId(findingDomId));
+                                    }}
+                                >
+                  {p.value}
+                </span>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 <div className="mt-3 text-xs text-muted-foreground">
@@ -131,3 +151,4 @@ export function ReceiptsText({
         </Card>
     );
 }
+

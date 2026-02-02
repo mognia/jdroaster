@@ -1,3 +1,5 @@
+import {Scores} from "@/lib/types/types";
+
 export const REPORT_VERSION = 1 as const;
 
 export type ReportVersion = typeof REPORT_VERSION;
@@ -22,7 +24,7 @@ export type AnalyzerReportV1 = {
     version: ReportVersion;
     createdAt: string;        // ISO
     normalizedText: string;
-    score: number;            // single numeric overall score
+    scores: Scores;            // single numeric overall score
     sentences: Sentence[];
 
     insights: Finding[];      // problems

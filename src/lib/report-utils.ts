@@ -17,14 +17,6 @@ export function clampScore(score: number): number {
     return Math.round(score);
 }
 
-export function scoreLabel(score: number): string {
-    // keep it self-explanatory without “design theater”
-    if (score >= 80) return "Good";
-    if (score >= 60) return "Mixed";
-    if (score >= 40) return "Risky";
-    return "High risk";
-}
-
 export function evidenceDomId(sentenceId: string): string {
     return `s-${sentenceId}`;
 }
