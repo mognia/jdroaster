@@ -43,6 +43,7 @@ export function ReceiptsText({
     onActiveSentenceChange: (id: string | null) => void;
     onFindingNavigate: (findingDomId: string) => void;
 }) {
+
     const kindMap = React.useMemo(() => buildSentenceKindMap(report), [report]);
 
     const pieces = React.useMemo(() => {
@@ -79,76 +80,86 @@ export function ReceiptsText({
         return null;
     }
 
+    const lineCount = React.useMemo(() => {
+        return report.normalizedText.split('\n').length + 5; // +5 for padding
+    }, [report.normalizedText]);
+
+    function getFindingKey(f: Finding) {
+        return (f as any).ruleId ?? (f as any).id ?? null;
+    }
+
     return (
-        <Card className="overflow-hidden border-muted/60 shadow-sm">
-            <CardHeader >
-                <div className='border-b border-dashed pb-4'>
+        <div className="relative font-mono text-[13px] leading-[24px] bg-zinc-950 rounded-lg overflow-hidden border border-zinc-800 shadow-2xl">
+            {/* FIX: Dynamic Gutter */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-zinc-900/50 border-r border-zinc-800 flex flex-col items-center pt-6 text-[10px] text-zinc-600 select-none">
+                {Array.from({ length: lineCount }).map((_, i) => (
+                    <span key={i} className="h-[24px]">{i + 1}</span>
+                ))}
+            </div>
 
-                    <CardTitle>Original job description</CardTitle>
+            <div className="pl-16 pr-6 py-6 overflow-x-auto min-h-[400px]">
+                <div className="max-w-none whitespace-pre-wrap text-zinc-300">
+                    {pieces.map((p, idx) => {
+                        if (p.t === "text") return <span key={`t-${idx}`} className="text-zinc-500 opacity-60">{p.value}</span>;
+
+                        const isClickable = p.kind !== "none";
+                        const isActive = activeSentenceId === p.id;
+
+                        const marker = p.kind === "insight"
+                            ? "border-b border-orange-500/60 bg-orange-500/10 hover:bg-orange-500/20"
+                            : p.kind === "green"
+                                ? "border-b border-emerald-500/60 bg-emerald-500/10 hover:bg-emerald-500/20"
+                                : "";
+
+                        const activeRing =
+                            isActive && p.kind === "green"
+                                ? "bg-emerald-500/25 ring-1 ring-emerald-500 rounded-sm"
+                                : isActive && p.kind === "insight"
+                                    ? "bg-orange-500/30 ring-1 ring-orange-500 rounded-sm"
+                                    : "";
+                        return (
+                            <span
+                                key={`s-${p.id}-${idx}`}
+                                id={evidenceDomId(p.id)}
+                                className={[
+                                    "inline-block",          // IMPORTANT: stable scroll box
+                                    "transition-all",
+                                    "scroll-mt-40",          // used with block:'start'
+                                    isClickable ? "cursor-pointer" : "",
+                                    marker,
+                                    activeRing,
+                                    "py-0.5",
+                                ].join(" ")}
+                                onClick={() => {
+                                    if (!isClickable) return;
+
+                                    onActiveSentenceChange(p.id);
+
+                                    const insightTarget = findingForSentenceIn(report.insights, p.id);
+                                    const greenTarget = findingForSentenceIn(report.greenFlags, p.id);
+                                    const target = insightTarget ?? greenTarget;
+                                    if (!target) return;
+
+                                    const scopeKey = insightTarget ? "insights" : "green";
+                                    const findingKey = getFindingKey(target);
+                                    if (!findingKey) return; // if this hits, your finding objects are missing identifiers
+
+                                    const findingDomId = `f-${scopeKey}-${findingKey}`;
+                                    onFindingNavigate(findingDomId);
+
+                                    document.getElementById(findingDomId)?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "center",
+                                    });
+                                }}
+                            >
+          {p.value}
+        </span>
+                        );
+                    })}
                 </div>
-            </CardHeader>
-
-            <CardContent>
-                <div className="rounded-xl border-dashed ">
-                    <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                        {pieces.map((p, idx) => {
-                            if (p.t === "text") return <React.Fragment key={`t-${idx}`}>{p.value}</React.Fragment>;
-
-                            const isClickable = p.kind !== "none";
-                            const isActive = activeSentenceId === p.id;
-
-                            const base =
-                                "scroll-mt-24 rounded-sm px-0.5 outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2";
-                            const marker =
-                                p.kind === "insight"
-                                    ? "bg-gradient-to-r from-rose-500/30 to-rose-500/10 border-b border-rose-500/50"
-                                    : p.kind === "green"
-                                        ? "bg-gradient-to-r from-emerald-500/30 to-emerald-500/10 border-b border-emerald-500/50"
-                                        : "";
-                            const active = isActive ? "ring-2 ring-sky-500/80 ring-offset-2 bg-sky-500/10" : "";
-                            const cls = [base, marker, active].filter(Boolean).join(" ");
-
-                            return (
-                                <span
-                                    key={`s-${p.id}-${idx}`}
-                                    id={evidenceDomId(p.id)}
-                                    tabIndex={-1}
-                                    className={cls}
-                                    role={isClickable ? "button" : undefined}
-                                    onClick={() => {
-                                        if (!isClickable) return;
-
-                                        onActiveSentenceChange(p.id);
-
-                                        // Decide which section to scroll to
-                                        const insightTarget = findingForSentenceIn(report.insights, p.id);
-                                        const greenTarget = findingForSentenceIn(report.greenFlags, p.id);
-
-                                        const target = insightTarget ?? greenTarget;
-                                        if (!target) return;
-
-                                        const scopeKey = insightTarget ? "insights" : "green";
-                                        const findingDomId = `f-${scopeKey}-${target.ruleId}`;
-
-                                        onFindingNavigate(findingDomId);
-
-                                        // scroll immediately, retry next frame if needed
-                                        scrollToId(findingDomId);
-                                        requestAnimationFrame(() => scrollToId(findingDomId));
-                                    }}
-                                >
-                  {p.value}
-                </span>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div className="mt-3 text-xs text-muted-foreground">
-                    Highlighting is based on sentence indices from the analyzer output.
-                </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }
 

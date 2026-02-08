@@ -1,32 +1,12 @@
 "use client";
-
 import * as React from "react";
 import { byPriorityDesc, evidenceDomId, sentenceByIdMap } from "@/lib/report-utils";
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { AnalyzerReportV1, Finding } from "@/lib/types/report.types";
-
-function scrollToElementById(id: string) {
-    const el = document.getElementById(id);
-    if (!el) return false;
-
-    // Helps when you have sticky headers or just want nicer alignment.
-    // Also requires the target element to have scroll-mt-* class applied.
-    el.scrollIntoView({ block: "start", behavior: "auto" });
-    el.focus?.();
-    return true;
-}
+import { Hash, SearchCode } from "lucide-react";
 
 export function FindingsList({
-                                 scopeKey,
-                                 title,
-                                 items,
-                                 report,
-                                 emptyText,
-                                 onGoToEvidence,
-                                 activeFindingDomId,
-                                 onFindingActivate,
+                                 scopeKey, title, items, report, emptyText, onGoToEvidence, activeFindingDomId, onFindingActivate,
                              }: {
     scopeKey: "insights" | "green";
     title: string;
@@ -34,104 +14,116 @@ export function FindingsList({
     report: AnalyzerReportV1;
     emptyText: string;
     onGoToEvidence: (sentenceId: string) => void;
-
     activeFindingDomId: string | null;
     onFindingActivate?: (findingDomId: string | null) => void;
 }) {
     const sorted = React.useMemo(() => [...items].sort(byPriorityDesc), [items]);
     const sentenceMap = React.useMemo(() => sentenceByIdMap(report.sentences), [report.sentences]);
 
-    function scrollToSentence(sentenceId: string, ruleId?: string) {
+    const isGreen = scopeKey === "green";
+    const accentColor = isGreen ? "border-emerald-500/50 text-emerald-400" : "border-orange-500/50 text-orange-400";
+    const stripeColor = isGreen ? "bg-emerald-500" : "bg-orange-600";
+
+    function getFindingKey(f: Finding, idx: number) {
+        // Prefer ruleId, fallback to id (if your Finding has it), last resort to index.
+        return (f as any).ruleId ?? (f as any).id ?? String(idx);
+    }
+    function scrollToSentence(sentenceId: string, findingKey?: string) {
         onGoToEvidence(sentenceId);
 
-        if (ruleId) {
-            const domId = `f-${scopeKey}-${ruleId}`;
+        if (findingKey) {
+            const domId = `f-${scopeKey}-${findingKey}`;
             onFindingActivate?.(domId);
         }
 
         const targetId = evidenceDomId(sentenceId);
 
-        if (scrollToElementById(targetId)) return;
-
+        // Wait for React paint/layout, then scroll.
         requestAnimationFrame(() => {
-            scrollToElementById(targetId);
+            requestAnimationFrame(() => {
+                const el = document.getElementById(targetId);
+                if (!el) return;
+
+                el.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start", // IMPORTANT: lets scroll-mt-* work
+                });
+
+                // Visual ping (match group color)
+                const ring = isGreen ? "ring-emerald-500" : "ring-orange-500";
+                el.classList.add("ring-2", ring);
+                setTimeout(() => el.classList.remove("ring-2", ring), 900);
+            });
         });
     }
-
-    const isGreen = scopeKey === "green";
-    const stripe = isGreen ? "bg-emerald-500" : "bg-rose-500";
-    const sub = isGreen
-        ? "Positive signals, each with receipts."
-        : "Risks and unclear signals, each with receipts.";
-
     return (
-        <Card className="border-muted/60 shadow-sm">
-            <CardHeader className="space-y-0 pb-3">
-                <div className="flex items-center justify-between gap-3">
-                    <CardTitle>{title}</CardTitle>
-                    <span className="text-s rounded-full border border-red-400 border-2 border-dashed  px-3 py-1 bg-muted/30">{items.length}</span>
+        <div className="space-y-4">
+            {sorted.length === 0 ? (
+                <div className="p-8 border border-dashed border-zinc-800 rounded-lg text-center text-zinc-500 font-mono text-sm">
+                    {emptyText}
                 </div>
-                <div className="text-sm text-muted-foreground">{sub}</div>
-            </CardHeader>
+            ) : (
+                sorted.map((f, idx) => {
+                    const findingKey = getFindingKey(f, idx);
+                    const findingDomId = `f-${scopeKey}-${findingKey}`;
+                    const isActive = activeFindingDomId === findingDomId;
 
-            <CardContent className="space-y-4">
-                {sorted.length === 0 ? (
-                    <div className="text-sm text-muted-foreground">{emptyText}</div>
-                ) : (
-                    sorted.map((f) => {
-                        const findingDomId = `f-${scopeKey}-${f.ruleId}`;
-                        const isActive = activeFindingDomId === findingDomId;
+                    return (
+                        <div
+                            key={findingDomId}
+                            id={findingDomId}
+                            className={`group relative overflow-hidden border transition-all duration-200 ${
+                                isActive
+                                    ? "border-zinc-400 bg-zinc-900 ring-1 ring-zinc-400"
+                                    : "border-zinc-800 bg-zinc-950/50 hover:border-zinc-700"
+                            }`}
+                        >
+                            {/* Diagnostic Stripe */}
+                            <div className={`absolute left-0 top-0 h-full w-1 ${stripeColor} ${isActive ? "opacity-100" : "opacity-40"}`} />
 
-                        return (
-                            <div
-                                key={f.ruleId}
-                                id={findingDomId}
-                                tabIndex={-1}
-                                className={[
-                                    "relative overflow-hidden rounded-xl border bg-card p-4 space-y-3",
-                                    "scroll-mt-24",
-                                    isActive ? "ring-2 ring-sky-500/80 ring-offset-2 bg-sky-500/5" : "",
-                                ].join(" ")}
-                            >
-                                <div className={`absolute left-0 top-0 h-full w-1.5 ${stripe}`} />
+                            <div className="p-4 pl-5 space-y-4">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="space-y-1">
+                                        <h3 className="text-sm font-bold font-mono uppercase tracking-tight text-zinc-100">{f.title}</h3>
+                                        <p className="text-xs text-zinc-400 leading-relaxed font-sans">{f.explanation}</p>
+                                    </div>
+                                    <div className={`px-2 py-0.5 rounded border font-mono text-[10px] uppercase font-bold shrink-0 ${accentColor}`}>
+                                        {isGreen ? "Flag: Clear" : "Flag: Risk"}
+                                    </div>
+                                </div>
 
-                                <div className="pl-2 space-y-2">
-                                    <div className="flex flex-col gap-1">
-                                        <div className="text-base font-semibold leading-snug">{f.title}</div>
-                                        <div className="text-sm text-muted-foreground leading-relaxed">{f.explanation}</div>
+                                <div className="space-y-2 pt-2 border-t border-zinc-800/50">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">
+                                        <Hash className="h-3 w-3" /> Source Evidence
                                     </div>
 
-                                    <div className="space-y-2">
-                                        <div className="text-sm font-medium">Receipts</div>
+                                    <div className="grid gap-2">
 
-                                        <ul className="space-y-2">
-                                            {f.evidenceSentenceIds.map((sid) => {
-                                                const s = sentenceMap.get(sid);
-                                                const preview = s ? s.text.trim() : "(missing sentence)";
+                                        {f.evidenceSentenceIds.map((sid) => {
+                                            const s = sentenceMap.get(sid);
+                                            const preview = s ? s.text.trim() : "(missing sentence)";
 
-                                                return (
-                                                    <li key={sid} className="flex flex-col gap-1">
-                                                        <Button
-                                                            type="button"
-                                                            variant="link"
-                                                            className="h-auto justify-start p-0 text-left"
-                                                            onClick={() => scrollToSentence(sid, f.ruleId)}
-                                                        >
-                                                            Go to evidence
-                                                        </Button>
-                                                        <div className="text-sm text-muted-foreground">{preview}</div>
-                                                    </li>
-                                                );
-                                            })}
-                                        </ul>
+                                            return (
+                                                <div key={sid} className="group/item flex flex-col gap-1.5 p-2 bg-zinc-900/50 border border-zinc-800 rounded">
+                                                    <p className="text-xs italic text-zinc-400 line-clamp-2 leading-normal font-serif">
+                                                        {preview}
+                                                    </p>
+                                                    <button
+                                                        onClick={() => scrollToSentence(sid, findingKey)}
+                                                        className="flex items-center gap-1 text-[10px] font-mono text-zinc-500 hover:text-orange-500 transition-colors uppercase font-bold"
+                                                    >
+                                                        <SearchCode className="h-3 w-3" /> [ LOCATE_SOURCE ]
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
-                        );
-                    })
-                )}
-            </CardContent>
-        </Card>
+                        </div>
+                    );
+                })
+            )}
+        </div>
     );
 }
-

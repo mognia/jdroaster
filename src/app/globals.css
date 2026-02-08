@@ -11,3 +11,40 @@ body {
     0% { transform: translateX(0); }
     100% { transform: translateX(200%); }
 }
+@layer base {
+    /* Target the whole document */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    /* The background track - we keep it transparent to maintain the grid background visibility */
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    /* The moving handle - "Terminal Green" or "Orange" to match your branding */
+    ::-webkit-scrollbar-thumb {
+        background: #27272a; /* zinc-800 */
+        border-radius: 0px; /* Sharp corners for the linter look */
+        border: 2px solid transparent; /* Creates padding effect */
+        background-clip: content-box;
+    }
+
+    /* Handle on hover - make it pop */
+    ::-webkit-scrollbar-thumb:hover {
+        background: #ea580c; /* orange-600 */
+        border: 0px solid transparent;
+    }
+
+    /* Firefox Support */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: #27272a transparent;
+    }
+}
+
+/* Specific Linter View Scrollbar (The Receipts Editor) */
+[data-jdx-scope="receipts"]::-webkit-scrollbar-thumb {
+    background: #3f3f46; /* zinc-700 */
+}
