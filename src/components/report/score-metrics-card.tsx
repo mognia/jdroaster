@@ -34,7 +34,7 @@ export function ScoreMetricsCard({ scores }: { scores: Scores }) {
                     return (
                         <div key={m.key} className="bg-zinc-900 p-4 space-y-3">
                             <div className="flex flex-col gap-0.5">
-                                <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-tight">{m.label}</span>
+                                <span className="text-[15px] font-mono font-bold text-zinc-500 uppercase tracking-tight">{m.label}</span>
                                 <span className="text-xl font-black font-mono tracking-tighter text-zinc-100">{shown}%</span>
                             </div>
 

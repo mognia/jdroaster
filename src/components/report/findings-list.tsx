@@ -85,7 +85,7 @@ export function FindingsList({
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="space-y-1">
                                         <h3 className="text-sm font-bold font-mono uppercase tracking-tight text-zinc-100">{f.title}</h3>
-                                        <p className="text-xs text-zinc-400 leading-relaxed font-sans">{f.explanation}</p>
+                                        <p className="text-s text-zinc-400 leading-relaxed font-sans">{f.explanation}</p>
                                     </div>
                                     <div className={`px-2 py-0.5 rounded border font-mono text-[10px] uppercase font-bold shrink-0 ${accentColor}`}>
                                         {isGreen ? "Flag: Clear" : "Flag: Risk"}
