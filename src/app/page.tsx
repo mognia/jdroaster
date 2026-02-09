@@ -81,6 +81,13 @@ export default function HomePage() {
 
             {/* --- INPUT AREA --- */}
             <section className="max-w-4xl mx-auto px-4">
+                {/* Error Console - Only shows when error exists */}
+                {error && (
+                    <div className=" left-6 bottom-24 right-6 p-3 bg-red-950/20 border border-red-900/50 rounded flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
+                        <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
+                        <span className="font-mono text-[11px] text-red-400 uppercase font-bold">{error}</span>
+                    </div>
+                )}
                 <form onSubmit={onSubmit} className="relative group">
                     {/* Header/Status Bar */}
                     <div className="flex items-center justify-between px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-t-lg border-b-0">
@@ -102,13 +109,7 @@ export default function HomePage() {
                         className="w-full h-[350px] bg-zinc-950 border border-zinc-800 rounded-b-lg p-6 font-mono text-sm text-zinc-300 focus:ring-1 focus:ring-orange-600/50 focus:border-orange-600 outline-none transition-all placeholder:text-zinc-800 resize-none shadow-2xl"
                     />
 
-                    {/* Error Console - Only shows when error exists */}
-                    {error && (
-                        <div className="absolute left-6 bottom-24 right-6 p-3 bg-red-950/20 border border-red-900/50 rounded flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2">
-                            <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
-                            <span className="font-mono text-[11px] text-red-400 uppercase font-bold">{error}</span>
-                        </div>
-                    )}
+
 
                     {/* Action Button */}
                     <div className="absolute bottom-6 right-6">
